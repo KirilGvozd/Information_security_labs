@@ -1,0 +1,12 @@
+h1 {
+    color: blue;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 32pt;
+}
+
+h2 {
+    color: darkmagenta;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 20pt;
+    font-style: italic;
+}
