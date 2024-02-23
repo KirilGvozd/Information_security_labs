@@ -15,8 +15,15 @@ function alphabetEntropy(alphabet, filePath, errorProbability = 0) {
     let entropy = 0;
     for (let ch of alphabet) {
         if (numberOfOccurrences[ch] !== 0) {
-            const P = numberOfOccurrences[ch] / filteredText.length * (1 - errorProbability);
-            entropy += P * Math.log2(P);
+            const P = numberOfOccurrences[ch] / filteredText.length;
+            if (errorProbability > 0) {
+                entropy = -(1 - (-errorProbability * Math.log2(errorProbability) - (1 - errorProbability) * Math.log2((1- errorProbability))));
+                if (isNaN(entropy)) {
+                    entropy = 0;
+                }
+            } else {
+                entropy += P * Math.log2(P);
+            }
         }
     }
     return -entropy;
@@ -43,8 +50,8 @@ const server = http.createServer((request, response) => {
             "Kirill Vladimirovich Gvozdovsky".length;
         const mongolianInformation = alphabetEntropy("абвгдеёжзийклмноөпрстуүфхцчшщъыьэюя", 'Mongolian.txt') *
             "Гвоздовский Кирилл Владимирович".length;
-        const binaryItalian = alphabetEntropy("01", 'Italian_binary.txt') * "Kirill Vladimirovich Gvozdovsky".length;
-        const binaryMongolian = alphabetEntropy("01", 'Mongolian_binary.txt') * "Гвоздовский Кирилл Владимирович".length;
+        const binaryItalian = alphabetEntropy("01", 'Italian_binary.txt') * "100011111101101101111111101011001001101111111011011100111101011110100111110011000001001011110100111100101101001110110011011001000001010110110110011000011100100110100111011011101001111001011011111110110110100111000111101000".length;
+        const binaryMongolian = alphabetEntropy("01", 'Mongolian_binary.txt') * "100011111101101101111111101011001001101111111011011100111101011110100111110011000001001011110100111100101101001110110011011001000001010110110110011000011100100110100111011011101001111001011011111110110110100111000111101000".length;
         response.setHeader('Content-Type', 'text/html');
         const htmlContent = fs.readFileSync('information.html', 'utf-8');
         const replacedContent = htmlContent
@@ -54,49 +61,22 @@ const server = http.createServer((request, response) => {
             .replace('{{mongolian_binary_information}}', binaryMongolian);
         response.end(replacedContent);
     } else if (request.url === '/task4_1') {
-        const italianInformation = alphabetEntropy("abcdefghilmnopqrstuvz", 'Italian.txt', 0.1) *
-            "Kirill Vladimirovich Gvozdovsky".length;
-        const mongolianInformation = alphabetEntropy("абвгдеёжзийклмноөпрстуүфхцчшщъыьэюя", 'Mongolian.txt', 0.1) *
-            "Гвоздовский Кирилл Владимирович".length;
-        const binaryItalian = alphabetEntropy("01", 'Italian_binary.txt', 0.1) * "Kirill Vladimirovich Gvozdovsky".length;
-        const binaryMongolian = alphabetEntropy("01", 'Mongolian_binary.txt', 0.1) * "Гвоздовский Кирилл Владимирович".length;
+        const binaryItalian = alphabetEntropy("01", 'fio.txt', 0.1);
         response.setHeader('Content-Type', 'text/html');
         const htmlContent = fs.readFileSync('task4_1.html', 'utf-8');
-        const replacedContent = htmlContent
-            .replace('{{latin_information}}', italianInformation)
-            .replace('{{cyrillic_information}}', mongolianInformation)
-            .replace('{{italian_binary_information}}', binaryItalian)
-            .replace('{{mongolian_binary_information}}', binaryMongolian);
+        const replacedContent = htmlContent.replace('{{italian_binary_information}}', binaryItalian);
         response.end(replacedContent);
     } else if (request.url === '/task4_2') {
-        const italianInformation = alphabetEntropy("abcdefghilmnopqrstuvz", 'Italian.txt', 0.5) *
-            "Kirill Vladimirovich Gvozdovsky".length;
-        const mongolianInformation = alphabetEntropy("абвгдеёжзийклмноөпрстуүфхцчшщъыьэюя", 'Mongolian.txt', 0.5) *
-            "Гвоздовский Кирилл Владимирович".length;
-        const binaryItalian = alphabetEntropy("01", 'Italian_binary.txt', 0.5) * "Kirill Vladimirovich Gvozdovsky".length;
-        const binaryMongolian = alphabetEntropy("01", 'Mongolian_binary.txt', 0.5) * "Гвоздовский Кирилл Владимирович".length;
+        const binaryItalian = alphabetEntropy("01", 'fio.txt', 0.5);
         response.setHeader('Content-Type', 'text/html');
         const htmlContent = fs.readFileSync('task4_2.html', 'utf-8');
-        const replacedContent = htmlContent
-            .replace('{{latin_information}}', italianInformation)
-            .replace('{{cyrillic_information}}', mongolianInformation)
-            .replace('{{italian_binary_information}}', binaryItalian)
-            .replace('{{mongolian_binary_information}}', binaryMongolian);
+        const replacedContent = htmlContent.replace('{{italian_binary_information}}', binaryItalian)
         response.end(replacedContent);
     } else if (request.url === '/task4_3') {
-        const italianInformation = alphabetEntropy("abcdefghilmnopqrstuvz", 'Italian.txt', 1) *
-            "Kirill Vladimirovich Gvozdovsky".length;
-        const mongolianInformation = alphabetEntropy("абвгдеёжзийклмноөпрстуүфхцчшщъыьэюя", 'Mongolian.txt', 1) *
-            "Гвоздовский Кирилл Владимирович".length;
-        const binaryItalian = alphabetEntropy("01", 'Italian_binary.txt', 1) * "Kirill Vladimirovich Gvozdovsky".length;
-        const binaryMongolian = alphabetEntropy("01", 'Mongolian_binary.txt', 1) * "Гвоздовский Кирилл Владимирович".length;
+        const binaryItalian = alphabetEntropy("01", 'fio.txt', 1);
         response.setHeader('Content-Type', 'text/html');
         const htmlContent = fs.readFileSync('task4_3.html', 'utf-8');
-        const replacedContent = htmlContent
-            .replace('{{latin_information}}', italianInformation)
-            .replace('{{cyrillic_information}}', mongolianInformation)
-            .replace('{{italian_binary_information}}', binaryItalian)
-            .replace('{{mongolian_binary_information}}', binaryMongolian);
+        const replacedContent = htmlContent.replace('{{italian_binary_information}}', binaryItalian);
         response.end(replacedContent);
     }
     else if (request.url === '/style_for_entropy.css') {
