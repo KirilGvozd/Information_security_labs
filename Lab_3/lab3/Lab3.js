@@ -11,6 +11,126 @@ const server = http.createServer( (request, response) => {
             response.end(fs.readFileSync('Lab3.html'));
         }
 
+        else if (request.url === '/api/transaction') {
+            prismaClient.$transaction(async prisma => {
+                await prisma.aUDITORIUM.updateMany({
+                    data: {
+                        AUDITORIUM_CAPACITY: {
+                            increment: 100
+                        }
+                    }
+                });
+                console.log(await prisma.aUDITORIUM.findMany());
+                throw new Error('Transaction rolled back')
+            }).catch(error => {
+                prismaClient.aUDITORIUM.findMany().then(auditoriums => {
+                    console.log(JSON.stringify(auditoriums, null, 2));
+                });
+                response.writeHead(200, {'Content-Type': 'text/html'});
+                response.end(`<h1>${error}</h1>`);
+            });
+        }
+
+        else if (request.url === '/api/auditoriumsWithComp1') {
+            prismaClient.aUDITORIUM.findMany({
+                where: {
+                    AUDITORIUM_TYPE: {
+                        equals: 'ЛБ-К'
+                    },
+                    AUDITORIUM_NAME: {
+                        endsWith: '-1'
+                    }
+                }
+            }).then(auditoriums => {
+                response.writeHead(200, {'Content-Type': 'application/json'});
+                response.end(JSON.stringify(auditoriums, null, 2));
+            });
+        }
+
+        else if (request.url === '/api/puplitsWithoutTeachers') {
+            prismaClient.pULPIT.findMany({
+                where: {
+                    TEACHER_TEACHER_PULPITToPULPIT: {
+                        none: {}
+                    }
+                }
+            }).then(pulpits => {
+                if (pulpits.length === 0) {
+                    response.writeHead(404, {'Content-Type': 'text/html'});
+                    response.end('<h1>Pulpits not found</h1>');
+                } else {
+                    response.writeHead(200, {'Content-Type': 'application/json'});
+                    response.end(JSON.stringify(pulpits, null, 2));
+                }
+            });
+        }
+
+        else if (request.url === '/api/pulpitsWithVladimir') {
+            prismaClient.pULPIT.findMany({
+                where: {
+                    TEACHER_TEACHER_PULPITToPULPIT: {
+                        some: {
+                            TEACHER_NAME: {
+                                contains: 'Владимир'
+                            }
+                        }
+                    }
+                },
+                select: {
+                    PULPIT: true,
+                    PULPIT_NAME: true,
+                    TEACHER_TEACHER_PULPITToPULPIT: {
+                        select: {
+                            TEACHER_NAME: true
+                        }
+                    }
+                }
+            }).then(teachers => {
+                if (teachers.length === 0) {
+                    response.writeHead(404, {'Content-Type': 'text/html'});
+                    response.end('<h1>Teacher with Vladimir not found</h1>');
+                } else {
+                    response.writeHead(200, {'Content-Type': 'application/json'});
+                    response.end(JSON.stringify(teachers, null, 2));
+                }
+            });
+        }
+
+        else if (request.url === '/api/auditoriumsSameCount') {
+            prismaClient.aUDITORIUM.groupBy({
+                by: ['AUDITORIUM_CAPACITY', 'AUDITORIUM_TYPE'],
+                _count: {
+                    AUDITORIUM: true
+                },
+                having: {
+                    AUDITORIUM: {
+                        _count: {
+                            gt: 1
+                        }
+                    }
+                }
+            }).then(auditoriums => {
+                if (auditoriums.length === 0) {
+                    response.writeHead(404, {'Content-Type': 'text/html'});
+                    response.end('<h1>There is no auditoriums</h1>');
+                } else {
+                    response.writeHead(200, {'Content-Type': 'application/json'});
+                    response.end(JSON.stringify(auditoriums, null, 2));
+                }
+            });
+        }
+
+        else if (request.url === '/fluentapi') {
+            prismaClient.pULPIT.findUnique({
+                where: {
+                    PULPIT: 'ИСиТ'
+                }
+            }).SUBJECT_SUBJECT_PULPITToPULPIT().then((subjects) => {
+                response.writeHead(200, {'Content-Type': 'application/json'});
+                response.end(JSON.stringify(subjects, null, 2));
+            });
+        }
+
         else if (request.url === '/api/faculties') {
             prismaClient.fACULTY.findMany().then((faculties) => {
                 response.writeHead(200, {'Content-Type': 'application/json'});
@@ -19,9 +139,21 @@ const server = http.createServer( (request, response) => {
         }
 
         else if (request.url === '/api/pulpits') {
-            prismaClient.pULPIT.findMany().then((pulpits) => {
+            prismaClient.pULPIT.findMany({
+                include: {
+                    TEACHER_TEACHER_PULPITToPULPIT: true
+                }
+            }).then((pulpits) => {
+                const formattedPulpits = pulpits.map(pulpit => ({
+                    PULPIT: pulpit.PULPIT,
+                    PULPIT_NAME: pulpit.PULPIT_NAME,
+                    FACULTY: pulpit.FACULTY,
+                    _count: {
+                        TEACHER_TEACHER_PULPITToPULPIT: pulpit.TEACHER_TEACHER_PULPITToPULPIT.length
+                    }
+                }))
                 response.writeHead(200, {'Content-Type': 'application/json'});
-                response.end(JSON.stringify(pulpits, null, 2));
+                response.end(JSON.stringify(formattedPulpits));
             });
         }
 
@@ -114,18 +246,38 @@ const server = http.createServer( (request, response) => {
         if (request.url === '/api/faculties') {
             request.on('end', () => {
                 let o = JSON.parse(body);
-                prismaClient.fACULTY.create({
-                    data: {
-                        FACULTY: o.faculty,
-                        FACULTY_NAME: o.faculty_name
-                    }
-                }).then(() => {
-                    response.writeHead(200, {'Content-Type': 'application/json'});
-                    response.end(`Added successfully: ${o.faculty}, ${o.faculty_name}`);
-                }).catch(error => {
-                    response.writeHead(500, {'Content-Type': 'application/json'});
-                    response.end(`Error: ${error}`);
-                })
+                if (!o.pulpit) {
+                    prismaClient.fACULTY.create({
+                        data: {
+                            FACULTY: o.faculty,
+                            FACULTY_NAME: o.faculty_name
+                        }
+                    }).then(() => {
+                        response.writeHead(200, {'Content-Type': 'application/json'});
+                        response.end(`Added successfully: ${o.faculty}, ${o.faculty_name}`);
+                    }).catch(error => {
+                        response.writeHead(500, {'Content-Type': 'application/json'});
+                        response.end(`Error: ${error}`);
+                    })
+                } else {
+                    prismaClient.fACULTY.create({
+                        data: {
+                            FACULTY: o.faculty,
+                            FACULTY_NAME: o.faculty_name,
+                            PULPIT_PULPIT_FACULTYToFACULTY: {
+                                createMany: {
+                                    data: o.pulpit
+                                }
+                            }
+                        }
+                    }).then(() => {
+                        response.writeHead(200, {'Content-Type': 'application/json'});
+                        response.end(`Added successfully: ${o.faculty}, ${o.faculty_name}`);
+                    }).catch(error => {
+                        response.writeHead(500, {'Content-Type': 'application/json'});
+                        response.end(`Error: ${error}`);
+                    });
+                }
             });
         }
 
@@ -136,7 +288,17 @@ const server = http.createServer( (request, response) => {
                     data: {
                         PULPIT: o.pulpit,
                         PULPIT_NAME: o.pulpit_name,
-                        FACULTY: o.faculty
+                        FACULTY_PULPIT_FACULTYToFACULTY: {
+                            connectOrCreate: {
+                                where: {
+                                    FACULTY: o.faculty
+                                },
+                                create: {
+                                    FACULTY: o.faculty.split(',')[0],
+                                    FACULTY_NAME: o.faculty.split(',')[1]
+                                }
+                            }
+                        }
                     }
                 }).then(() => {
                     response.writeHead(200, {'Content-Type': 'application/json'});
@@ -382,7 +544,7 @@ const server = http.createServer( (request, response) => {
                 }
             }).then(() => {
                 response.writeHead(200, {'Content-Type': 'application/json'});
-                response.end(`Deleted successfully`);
+                response.end(`Deleted successfully: ${pulpitCode}`);
             }).catch(error => {
                 response.writeHead(500, {'Content-Type': 'application/json'});
                 response.end(`Error: ${error}`);
@@ -397,7 +559,7 @@ const server = http.createServer( (request, response) => {
                 }
             }).then(() => {
                 response.writeHead(200, {'Content-Type': 'application/json'});
-                response.end(`Deleted successfully`);
+                response.end(`Deleted successfully: ${subjectCode}`);
             }).catch(error => {
                 response.writeHead(500, {'Content-Type': 'application/json'});
                 response.end(`Error: ${error}`);
@@ -412,7 +574,7 @@ const server = http.createServer( (request, response) => {
                 }
             }).then(() => {
                 response.writeHead(200, {'Content-Type': 'application/json'});
-                response.end(`Deleted successfully`);
+                response.end(`Deleted successfully: ${teacherCode}`);
             }).catch(error => {
                 response.writeHead(500, {'Content-Type': 'application/json'});
                 response.end(`Error: ${error}`);
@@ -427,7 +589,7 @@ const server = http.createServer( (request, response) => {
                 }
             }).then(() => {
                 response.writeHead(200, {'Content-Type': 'application/json'});
-                response.end(`Deleted successfully`);
+                response.end(`Deleted successfully: ${typeCode}`);
             }).catch(error => {
                 response.writeHead(500, {'Content-Type': 'application/json'});
                 response.end(`Error: ${error}`);
@@ -442,7 +604,7 @@ const server = http.createServer( (request, response) => {
                 }
             }).then(() => {
                 response.writeHead(200, {'Content-Type': 'application/json'});
-                response.end(`Deleted successfully`);
+                response.end(`Deleted successfully: ${auditoriumCode}`);
             }).catch(error => {
                 response.writeHead(500, {'Content-Type': 'application/json'});
                 response.end(`Error: ${error}`);

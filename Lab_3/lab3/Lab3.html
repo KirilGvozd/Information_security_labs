@@ -2,9 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lab 3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main page</title>
 </head>
 <body>
-<h1>Lab3</h1>
+<div id="pulpits-list"></div>
+<div class="pagination" id="pagination"></div>
 </body>
+
+<script>
+    const apiUrl = 'http://localhost:3000/api/pulpits';
+    const itemsPerPage = 10;
+    let currentPage = 1;
+
+
+    async function fetchData() {
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            console.log(data);
+            return data;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    function displayDataOnPage(data, page) {
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedData = data.slice(startIndex, endIndex);
+
+        const pulpitListContainer = document.getElementById('pulpits-list');
+        pulpitListContainer.innerHTML = '';
+
+        paginatedData.forEach(item => {
+            const listItem = document.createElement('div');
+            listItem.innerHTML = `<b>Код</b>: ${item.PULPIT}, <b>кафедра</b>: ${item.PULPIT_NAME}, <b>факультет</b>: ${item.FACULTY}, <b>кол-во преподавателей: ${item._count.TEACHER_TEACHER_PULPITToPULPIT}</b>: <br><br>;
+pulpitListContainer.appendChild(listItem)`;
+        });
+    }
+
+    function displayPagination(data) {
+        const totalPages = Math.ceil(data.length / itemsPerPage);
+        const paginationContainer = document.getElementById('pagination');
+        paginationContainer.innerHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            const button = document.createElement('button');
+            button.textContent = i;
+            button.addEventListener('click', () => {
+                currentPage = i;
+                displayDataOnPage(data, currentPage);
+            });
+            paginationContainer.appendChild(button);
+        }
+    }
+
+    async function init() {
+        const data = await fetchData();
+        displayDataOnPage(data, currentPage);
+        displayPagination(data);
+    }
+
+    init();
+</script>
 </html>
