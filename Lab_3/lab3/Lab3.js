@@ -57,7 +57,7 @@ const server = http.createServer( (request, response) => {
             const facultyCode = request.url.split('/')[3];
             prismaClient.fACULTY.findMany({
                 where: {
-                    FACULTY: 'ИЭФ'
+                    FACULTY: facultyCode
                 },
                 select: {
                     FACULTY_NAME: true,
