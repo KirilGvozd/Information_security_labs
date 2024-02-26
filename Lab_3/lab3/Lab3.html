@@ -9,12 +9,10 @@
 <div id="pulpits-list"></div>
 <div class="pagination" id="pagination"></div>
 </body>
-
 <script>
     const apiUrl = 'http://localhost:3000/api/pulpits';
     const itemsPerPage = 10;
     let currentPage = 1;
-
 
     async function fetchData() {
         try {
@@ -37,8 +35,8 @@
 
         paginatedData.forEach(item => {
             const listItem = document.createElement('div');
-            listItem.innerHTML = `<b>Код</b>: ${item.PULPIT}, <b>кафедра</b>: ${item.PULPIT_NAME}, <b>факультет</b>: ${item.FACULTY}, <b>кол-во преподавателей: ${item._count.TEACHER_TEACHER_PULPITToPULPIT}</b>: <br><br>;
-pulpitListContainer.appendChild(listItem)`;
+            listItem.innerHTML = `<b>Код</b>: ${item.PULPIT}, <b>кафедра</b>: ${item.PULPIT_NAME}, <b>факультет</b>: ${item.FACULTY}, <b>кол-во преподавателей: ${item._count.TEACHER_TEACHER_PULPITToPULPIT}</b>: <br><br>`;
+            pulpitListContainer.appendChild(listItem);
         });
     }
 
