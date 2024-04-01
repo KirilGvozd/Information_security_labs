@@ -29,6 +29,18 @@ function alphabetEntropy(alphabet, filePath, errorProbability = 0) {
     return -entropy;
 }
 
+function numberOfOccurrences(alphabet, filePath) {
+    let arrayOfSymbols = {};
+    [...alphabet].forEach(ch => arrayOfSymbols[ch] = 0);
+
+    const text = fs.readFileSync(filePath, 'utf8').toLowerCase();
+    const filteredText = text.split('').filter(ch => alphabet.includes(ch)).join('');
+
+    for (let ch of filteredText) {
+        arrayOfSymbols[ch]++;
+    }
+    return arrayOfSymbols;
+}
 
 
 const server = http.createServer((request, response) => {
@@ -83,16 +95,15 @@ const server = http.createServer((request, response) => {
         response.setHeader('Content-Type', 'text/css');
         response.write(fs.readFileSync('./style_for_entropy.css'));
         response.end();
-    }
-
-    else {
+    } else if (request.url === '/base64') {
+        response.setHeader('Content-Type', 'application/json');
+        response.write(alphabetEntropy('abcdefghijklmnopqrstuvwxyz', 'Lab3_text.txt'));
+    } else {
         response.statusCode = 404;
         response.end('<h1>Not Found</h1>');
     }
 });
-
-// Запуск сервера
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}/`);
 });

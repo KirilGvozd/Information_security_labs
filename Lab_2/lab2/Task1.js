@@ -38,6 +38,8 @@ const server = http.createServer((request, response) => {
         result = gcd(numbers[0], numbers[1]);
     } else if (numbers.length === 3) {
         result = gcdThree(numbers[0], numbers[1], numbers[2]);
+    } else {
+        result = 'Wrong number of parameters!';
     }
 
     const primes = numbers.filter(isPrime);
