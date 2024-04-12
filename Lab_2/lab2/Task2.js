@@ -1,5 +1,5 @@
 const http = require('http');
-const {isPrime} = require("./Task1");
+const {isPrime, isConcatenatedPrime} = require("./Task1");
 
 function primeFactors(num) {
     let factors = [];
@@ -13,7 +13,7 @@ function primeFactors(num) {
 }
 
 const server = http.createServer((request, response) => {
-    if (request.url === '/task2' && request.method === 'GET') {
+    if (request.url === '/' && request.method === 'GET') {
         const n = 401;
         const m  = 367;
         let primes = [];
@@ -35,11 +35,12 @@ const server = http.createServer((request, response) => {
         response.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
         response.end(`<h1>${primes.join(', ')}</h1>` + `<h1>Number of simple numbers: ${primes.length}</h1>`
             + `<h1>Theoretical count of simple numbers: ${Math.round(theoreticalSimpleNumbers)}</h1>`
-            + `<h1>Task 3:</h1>`
+            + `<h1>Task 2:</h1>`
             + `<h1>${secondPrimes.join(', ')}</h1>`
-            + `<h1>Task 4:</h1>`
+            + `<h1>Task 3:</h1>`
             + `<h1>Разложение числа m: ${primesOfM.join(' x ')}</h1>`
-            + `<h1>Разложение числа n: ${primesOfN.join(' x ')}</h1>`);
+            + `<h1>Разложение числа n: ${primesOfN.join(' x ')}</h1>`
+            + `<h1>Task 4: ${isConcatenatedPrime(m, n)}</h1>`);
     }
 });
 

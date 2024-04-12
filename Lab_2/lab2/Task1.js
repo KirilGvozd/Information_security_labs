@@ -28,6 +28,11 @@ function isPrime(num) {
     return true;
 }
 
+function isConcatenatedPrime(firstNumber, secondNumber) {
+    const concatenatedNumber = parseInt(firstNumber.toString() + secondNumber.toString());
+    return isPrime(concatenatedNumber);
+}
+
 const server = http.createServer((request, response) => {
     const path = url.parse(request.url, true).pathname;
     const numbers = path.split('/').slice(1).map(Number);
@@ -56,3 +61,4 @@ server.listen(PORT, HOST, () => {
 });
 
 module.exports.isPrime = isPrime;
+module.exports.isConcatenatedPrime = isConcatenatedPrime;
