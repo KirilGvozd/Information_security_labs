@@ -11,19 +11,44 @@ app.get('/caesar', (request, response) => {
             return response.status(500).send('Error reading input file');
         }
 
-        const key = 'GVOZDOVSKIY'; // ваш ключ шифрования
-        const encryptedText = encryptCaesar(data, key);
-        const decryptedText = decryptCaesar(encryptedText, key);
+        const encryptionAlphabet = formAlphabet(2);
+        let startTime = Date.now();
+        const encryptedText = encryptCaesar(data, encryptionAlphabet);
+        let finishTime = Date.now();
+        const encryptionTime = finishTime - startTime;
+        startTime = Date.now();
+        const decryptedText = decryptCaesar(encryptedText, encryptionAlphabet);
+        finishTime = Date.now();
+        const decryptionTime = finishTime - startTime;
         fs.writeFileSync('EncryptedEnglishText.txt', encryptedText, 'utf8');
         fs.writeFileSync('DecryptedEnglishText.txt', decryptedText, 'utf8');
-        response.send(`<p>Зашифрованный текст:</p><p>${encryptedText}</p>` + `<p>Расшифрованный текст: </br>${decryptedText}</p>`);
+        const numberOfOccurenciesEncrypted = CountCharacterFrequency(encryptedText.toLowerCase());
+        const numberOfOccurenciesDecrypted = CountCharacterFrequency(decryptedText.toLowerCase());
+        response.send(`<h2>Зашифрованный текст:</h2>
+            <p>${encryptedText}</p>
+            <h2>Расшифрованный текст:</h2>
+            <p>${decryptedText}</p>
+            <h2>Частота появления символов в зашифрованном тексте:</h2>
+            <p>${Object.entries(numberOfOccurenciesEncrypted).map(([symbol, count]) => `<li>${symbol}: ${count}</li>`).join('')}</p>
+            <h2>Частота появления символов в расшифрованном тексте:</h2>
+            <p>${Object.entries(numberOfOccurenciesDecrypted).map(([symbol, count]) => `<li>${symbol}: ${count}</li>`).join('')}</p>
+            <h2>Время выполнения шифрования текста: ${encryptionTime} мс</h2>
+            <h2>Время выполнения расшифрования текста: ${decryptionTime} мс</h2>
+`);
     });
 });
 
 app.get('/trisemus', (request, response) => {
     const inputFile = 'EnglishText.txt';
-    const keyword = 'Kirill';
-    const table = trisemusTable(keyword);
+    const table = [
+        ['k', 'i', 'r', 'l'],
+        ['a', 'b', 'c', 'd'],
+        ['e', 'f', 'g', 'h'],
+        ['j', 'm', 'n', 'o'],
+        ['p', 'q', 's', 't'],
+        ['u', 'v', 'w', 'x'],
+        ['y', 'z', '_', '+']
+    ];
 
     fs.readFile(inputFile, 'utf8', (err, data) => {
         if (err) {
@@ -32,52 +57,80 @@ app.get('/trisemus', (request, response) => {
             return;
         }
 
-        const encryptedText = encryptTrisemus(data, table);
+        let startTime = Date.now();
+        const encryptedText = encryptTrisemus(data.toLowerCase(), table);
+        let finishTime = Date.now();
+        const encryptionTime = finishTime - startTime;
+        fs.writeFileSync('EncryptedTrisemus.txt', encryptedText, 'utf8');
+        startTime = Date.now();
+        const decryptedText = decryptTrisemus('EncryptedTrisemus.txt', table);
+        finishTime = Date.now();
+        const decryptionTime = finishTime - startTime;
+        fs.writeFileSync('DecryptedTrisemus.txt', decryptedText, 'utf8');
+        const numberOfOccurenciesEncrypted = CountCharacterFrequency(encryptedText);
+        const numberOfOccurenciesDecrypted = CountCharacterFrequency(decryptedText);
 
         response.send(`
             <h2>Зашифрованный текст:</h2>
             <p>${encryptedText}</p>
             <h2>Расшифрованный текст:</h2>
-            <p>${data}</p>
+            <p>${decryptedText}</p>
+            <h2>Частота появления символов в зашифрованном тексте:</h2>
+            <p>${Object.entries(numberOfOccurenciesEncrypted).map(([symbol, count]) => `<li>${symbol}: ${count}</li>`).join('')}</p>
+            <h2>Частота появления символов в расшифрованном тексте:</h2>
+            <p>${Object.entries(numberOfOccurenciesDecrypted).map(([symbol, count]) => `<li>${symbol}: ${count}</li>`).join('')}</p>
+            <h2>Время выполнения зашифрования текста: ${encryptionTime} мс</h2>
+            <h2>Время выполнения расшифрования текста: ${decryptionTime} мс</h2>
         `);
     });
 });
 
-function encryptCaesar(inputText, key) {
-    let encryptedText = "";
+function encryptCaesar(inputText, cipherAlphabet) {
+    let resultCipher = "";
+    inputText = inputText.toLowerCase();
 
     for (let i = 0; i < inputText.length; i++) {
-        const shift = key[i % key.length].charCodeAt(0) - 'A'.charCodeAt(0);
-        let c = inputText[i];
-
-        if (/[a-zA-Z]/.test(c)) {
-            const baseCharCode = c === c.toUpperCase() ? 'A'.charCodeAt(0) : 'a'.charCodeAt(0);
-            const encryptedCharCode = (c.charCodeAt(0) - baseCharCode + shift) % 26 + baseCharCode;
-            c = String.fromCharCode(encryptedCharCode);
+        if (alphabet.includes(inputText[i])) {
+            let originalIndex = alphabet.indexOf(inputText[i]);
+            resultCipher += cipherAlphabet[originalIndex];
         }
-
-        encryptedText += c;
     }
-    return encryptedText;
+
+    return resultCipher;
 }
 
-function decryptCaesar(encryptedText, key) {
-    let decryptedText = "";
+function decryptCaesar(encryptedText, cipherAlphabet) {
+    let originalText = "";
 
     for (let i = 0; i < encryptedText.length; i++) {
-        const shift = key[i % key.length].charCodeAt(0) - 'A'.charCodeAt(0);
-        let c = encryptedText[i];
-
-        if (/[a-zA-Z]/.test(c)) {
-            const baseCharCode = c === c.toUpperCase() ? 'A'.charCodeAt(0) : 'a'.charCodeAt(0);
-            const decryptedCharCode = (c.charCodeAt(0) - shift - baseCharCode + 26) % 26 + baseCharCode;
-            c = String.fromCharCode(decryptedCharCode);
-        }
-
-        decryptedText += c;
+        let originalIndex = cipherAlphabet.indexOf(encryptedText[i]);
+        originalText += alphabet[originalIndex];
     }
 
-    return decryptedText;
+    return originalText
+}
+
+function formAlphabet(a) {
+    let result = "";
+    let buffer = "";
+    let processedKeyword = Array.from(new Set('gvozdovskiy')).join('');
+    let separatorIndex = alphabet.length - a;
+
+
+    for (let i = 0; i < alphabet.length; i++) {
+        if (i < separatorIndex) {
+            if (!processedKeyword.includes(alphabet[i])) {
+                result += alphabet[i];
+            }
+        } else if (i === separatorIndex) {
+            result = processedKeyword + result;
+            buffer += alphabet[i];
+        } else {
+            buffer += alphabet[i];
+        }
+    }
+    result = buffer + result;
+    return result;
 }
 
 function trisemusTable(keyword) {
@@ -147,7 +200,7 @@ function encryptTrisemus(text, table) {
     return encryptedText.join('');
 }
 
-function decryptTrisemus(encryptedFile, decryptedFile, table) {
+function decryptTrisemus(encryptedFile, table) {
     try {
         const text = fs.readFileSync(encryptedFile, 'utf8');
         const decryptedText = [];
@@ -171,13 +224,23 @@ function decryptTrisemus(encryptedFile, decryptedFile, table) {
             }
         }
 
-        console.log("Расшифрованный текст:\n---------------\n" + decryptedText.join(''));
-        fs.writeFileSync(decryptedFile, decryptedText.join(''));
+        return decryptedText.join('');
     } catch (error) {
         console.error("Error: " + error.message);
     }
 }
 
+function CountCharacterFrequency(text) {
+        let arrayOfSymbols = {};
+        [...alphabet].forEach(ch => arrayOfSymbols[ch] = 0);
+
+        const filteredText = text.split('').filter(ch => alphabet.includes(ch)).join('');
+
+        for (let ch of filteredText) {
+            arrayOfSymbols[ch]++;
+        }
+        return arrayOfSymbols;
+}
 app.listen(3000, () => {
     console.log(`Server is running on http://localhost:3000`);
-})
+});
