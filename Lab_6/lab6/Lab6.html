@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 6</title>
+    <style>
+        body {
+            font-family: "Roboto Light", sans-serif;
+        }
+    </style>
+</head>
+<body>
+<h1>Lab 6 results:</h1>
+<div id="results"></div>
+<script>
+    function rotorShift(arr) {
+        const x = arr.slice(1, arr.length);
+        x.push(arr[0]);
+        return x;
+    }
+
+    function enigma(message, a, b, c) {
+        let rotorIII  = Array.from("BDFHJLCPRTXVZNYEIWGAKMUSQO");
+        let rotorVII = Array.from("NZJHGRCXMYSWBOUFAIVLPEKQDT");
+        let rotorI = Array.from("EKMFLGDQVZNTOWYHXUSPAIBRCJ");
+        let reflectorBDunn = Array.from("AEBNCKDQFUGYHWIJLOMPRXSZTV");
+        let alphabet = Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+        for (let i = 0; i < a; i++) {
+            rotorIII = rotorShift(rotorIII);
+        }
+        for (let i = 0; i < b; i++) {
+            rotorVII = rotorShift(rotorVII);
+        }
+        for (let i = 0; i < c; i++) {
+            rotorI = rotorShift(rotorI);
+        }
+        let ind;
+        let result = [];
+
+        //R
+        ind = rotorI[alphabet.indexOf(message[0])];
+        //M
+        ind = rotorVII[alphabet.indexOf(ind)];
+        //L
+        ind = rotorIII[alphabet.indexOf(ind)];
+        //рефлектор
+        if (reflectorBDunn.indexOf(ind) % 2 == 0) {
+            ind = reflectorBDunn[reflectorBDunn.indexOf(ind) + 1];
+        } else {
+            ind = reflectorBDunn[reflectorBDunn.indexOf(ind) - 1];
+        }
+        //L
+        ind = alphabet[rotorIII.indexOf(ind)];
+        //M
+        ind = alphabet[rotorVII.indexOf(ind)];
+        //R
+        ind = alphabet[rotorI.indexOf(ind)];
+        result.push(ind);
+
+        for (let i = 1; i < message.length; i++) {
+            rotorIII = rotorShift(rotorIII);
+            if (rotorI[0] === "A") {
+                rotorVII = rotorShift(rotorVII);
+            }
+            rotorI = rotorShift(rotorShift(rotorI));
+            //R
+            ind = rotorI[alphabet.indexOf(message[i])];
+            //M
+            ind = rotorVII[alphabet.indexOf(ind)];
+            //L
+            ind = rotorIII[alphabet.indexOf(ind)];
+            //рефлектор
+            if (reflectorBDunn.indexOf(ind) % 2 == 0) {
+                ind = reflectorBDunn[reflectorBDunn.indexOf(ind) + 1];
+            } else {
+                ind = reflectorBDunn[reflectorBDunn.indexOf(ind) - 1];
+            }
+            //L
+            ind = alphabet[rotorIII.indexOf(ind)];
+            //M
+            ind = alphabet[rotorVII.indexOf(ind)];
+            //R
+            ind = alphabet[rotorI.indexOf(ind)];
+            result.push(ind);
+        }
+        return result;
+    }
+
+    let str = "GVOZDOVSKIYKIRILLVLADIMIROVICH";
+
+    console.log("\n1, 0, 1");
+    let encoded1 = enigma(str, 0, 0, 0)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+    let decoded1 = enigma(encoded1, 0, 0, 0)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+
+    console.log("\n1, 2, 1");
+    let encoded2 = enigma(str, 1, 2, 2)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+    let decoded2 = enigma(encoded2, 1, 2, 2)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+
+    console.log("\n2, 3, 4");
+    let encoded3 = enigma(str, 1, 0, 1)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+    let decoded3 = enigma(encoded3, 1, 0, 1)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+
+    console.log("\n5, 2, 6");
+    let encoded4 = enigma(str, 0, 0, 4)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+    let decoded4 = enigma(encoded4, 0, 0, 4)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+
+    console.log("\n4, 7, 1");
+    let encoded5 = enigma(str, 3, 1, 3)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+    let decoded5 = enigma(encoded5, 3, 1, 3)
+        .toString()
+        .replace(/[^A-Z]+/g, "");
+
+
+
+    function displayResults(encoded, decoded, setting) {
+        const resultsElement = document.getElementById('results');
+        const resultHTML = `
+        <h3>Setting: ${setting}</h3>
+        <p><strong>Encoded:</strong> ${encoded}</p>
+        <p><strong>Decoded:</strong> ${decoded}</p>
+    `;
+        resultsElement.innerHTML += resultHTML;
+    }
+
+    displayResults( encoded1 , decoded1 , "1, 0, 1");
+    displayResults( encoded2 ,  decoded2 , "1, 2, 1");
+    displayResults( encoded3 ,  decoded3 , "2, 3, 4");
+    displayResults( encoded4 ,  decoded4 , "5, 2, 6");
+    displayResults( encoded5 ,  decoded5 , "4, 7, 1");
+</script>
+</body>
+</html>
