@@ -1,0 +1,14 @@
+/home/kirill/Labs/Information_security/Lab_11/Lab11/bin/Debug/net8.0/Lab11
+/home/kirill/Labs/Information_security/Lab_11/Lab11/bin/Debug/net8.0/Lab11.deps.json
+/home/kirill/Labs/Information_security/Lab_11/Lab11/bin/Debug/net8.0/Lab11.runtimeconfig.json
+/home/kirill/Labs/Information_security/Lab_11/Lab11/bin/Debug/net8.0/Lab11.dll
+/home/kirill/Labs/Information_security/Lab_11/Lab11/bin/Debug/net8.0/Lab11.pdb
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/Lab11.GeneratedMSBuildEditorConfig.editorconfig
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/Lab11.AssemblyInfoInputs.cache
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/Lab11.AssemblyInfo.cs
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/Lab11.csproj.CoreCompileInputs.cache
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/Lab11.dll
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/refint/Lab11.dll
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/Lab11.pdb
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/Lab11.genruntimeconfig.cache
+/home/kirill/Labs/Information_security/Lab_11/Lab11/obj/Debug/net8.0/ref/Lab11.dll
